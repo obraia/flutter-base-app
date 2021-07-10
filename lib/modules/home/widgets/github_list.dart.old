@@ -1,0 +1,185 @@
+import 'package:base_app/modules/home/models/user.dart';
+import 'package:base_app/modules/home/widgets/github_list_item.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'package:material_floating_search_bar/material_floating_search_bar.dart';
+
+class GithubListState extends State<GithubList> {
+  var _users = <User>[];
+  final String baseUrl = 'https://api.github.com/users';
+  static const historyLength = 5;
+
+  List<String> _searchHistory = [
+    'dart',
+    'flutter',
+    'dartlang',
+  ];
+
+  List<String> _filteredSearchHistory = [];
+
+  String selectedTerm = '';
+
+  List<String> filterSearchTerms({
+    required String filter,
+  }) {
+    if (filter.isNotEmpty) {
+      return _searchHistory.reversed
+          .where((term) => term.startsWith(filter))
+          .toList();
+    } else {
+      return _searchHistory.reversed.toList();
+    }
+  }
+
+  void addSerchTerm(String term) {
+    if (!_searchHistory.contains(term)) {
+      _searchHistory.add(term);
+
+      if (_searchHistory.length > historyLength) {
+        _searchHistory.removeRange(0, _searchHistory.length - historyLength);
+      }
+
+      _filteredSearchHistory = filterSearchTerms(filter: '');
+    } else {
+      putSearchTermFirst(term);
+    }
+  }
+
+  void deleteSearchTerm(String term) {
+    _searchHistory.remove(term);
+    _filteredSearchHistory = filterSearchTerms(filter: '');
+  }
+
+  void putSearchTermFirst(String term) {
+    deleteSearchTerm(term);
+    addSerchTerm(term);
+  }
+
+  late FloatingSearchBarController controller;
+
+  _loadData() async {
+    http.Response response = await http.get(Uri.parse(baseUrl));
+
+    setState(() {
+      final usersJSON = jsonDecode(response.body);
+
+      for (var user in usersJSON) {
+        _users.add(User.fromJson(user));
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    controller = FloatingSearchBarController();
+    _filteredSearchHistory = filterSearchTerms(filter: '');
+    _loadData();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingSearchBar(
+      controller: controller,
+      transition: CircularFloatingSearchBarTransition(),
+      physics: BouncingScrollPhysics(),
+      title: Text(selectedTerm.isEmpty ? 'GitHub users' : selectedTerm),
+      hint: 'Search GitHub users...',
+      actions: [FloatingSearchBarAction.searchToClear()],
+      onQueryChanged: (query) {
+        setState(() {
+          _filteredSearchHistory = filterSearchTerms(filter: query);
+        });
+      },
+      onSubmitted: (query) {
+        setState(() {
+          addSerchTerm(query);
+          selectedTerm = query;
+        });
+        controller.close();
+      },
+      body: FloatingSearchBarScrollNotifier(
+          child: ListView.builder(
+              padding: const EdgeInsets.all(10),
+              itemCount: _users.length,
+              itemBuilder: (context, index) {
+                return GithubListItem(_users[index]);
+              })),
+      builder: (context, transition) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Material(
+              color: Colors.white,
+              elevation: 4,
+              child: Builder(builder: (context) {
+                if (_filteredSearchHistory.isEmpty &&
+                    controller.query.isEmpty) {
+                  return Container(
+                      height: 56,
+                      width: double.infinity,
+                      alignment: Alignment.center,
+                      child: Text('Start searching',
+                          maxLines: 1, overflow: TextOverflow.ellipsis));
+                } else if (_filteredSearchHistory.isEmpty) {
+                  return ListTile(
+                    title: Text(controller.query),
+                    leading: const Icon(
+                      Icons.search,
+                      size: 46,
+                      color: Colors.grey,
+                    ),
+                    onTap: () {
+                      setState(() {
+                        addSerchTerm(controller.query);
+                        selectedTerm = controller.query;
+                      });
+                      controller.close();
+                    },
+                  );
+                } else {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: _filteredSearchHistory
+                        .map((term) => ListTile(
+                              title: Text(term,
+                                  maxLines: 1, overflow: TextOverflow.ellipsis),
+                              leading: const Icon(Icons.history),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  setState(() {
+                                    deleteSearchTerm(term);
+                                  });
+                                },
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  putSearchTermFirst(term);
+                                  selectedTerm = term;
+                                });
+                                controller.close();
+                              },
+                            ))
+                        .toList(),
+                  );
+                }
+              })),
+        );
+      },
+    );
+  }
+}
+
+class GithubList extends StatefulWidget {
+  @override
+  createState() => new GithubListState();
+}
