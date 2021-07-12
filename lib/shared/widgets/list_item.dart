@@ -2,7 +2,7 @@ import 'package:base_app/modules/home/models/user.dart';
 import 'package:base_app/shared/utils/color.dart';
 import 'package:flutter/material.dart';
 
-class GithubListItemSpacer extends StatelessWidget {
+class ListItemSpacer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -11,12 +11,12 @@ class GithubListItemSpacer extends StatelessWidget {
   }
 }
 
-class GithubListItem extends StatelessWidget {
+class ListItem extends StatelessWidget {
   final User _user;
   final _font = const TextStyle(fontFamily: 'Roboto', fontSize: 20, color: Color(0xFF5C5C5C));
   final Color _backgroundColor = Color(0xFFFFFFFF);
 
-  GithubListItem(this._user);
+  ListItem(this._user);
 
   @override
   Widget build(BuildContext context) {
