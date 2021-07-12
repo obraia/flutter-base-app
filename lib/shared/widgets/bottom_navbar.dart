@@ -16,9 +16,10 @@ class BottomNavbarState extends State<BottomNavbar> {
 
   List<NavigationItem> _navigationItems = [
     NavigationItem([Icon(Icons.home), Icon(Icons.home_outlined)], 'Home', Color(0xFF5A40BB)),
-    NavigationItem([Icon(Icons.favorite), Icon(Icons.favorite_outline)], 'Favorites', Color(0xFFA75098)),
-    NavigationItem([Icon(Icons.search), Icon(Icons.search_outlined)], 'Search', Color(0xFFAD4A4A)),
-    NavigationItem([Icon(Icons.person), Icon(Icons.person_outlined)], 'Profile', Color(0xFF82B943)),
+    NavigationItem(
+        [Icon(Icons.favorite), Icon(Icons.favorite_outline)], 'Favorites', Color(0xFFA75098)),
+    NavigationItem([Icon(Icons.search), Icon(Icons.search_outlined)], 'Search', Color(0xFF82B943)),
+    NavigationItem([Icon(Icons.person), Icon(Icons.person_outlined)], 'Profile', Color(0xFFAD4A4A)),
   ];
 
   Widget _buildItem(NavigationItem item, bool isSelected) {
@@ -42,7 +43,8 @@ class BottomNavbarState extends State<BottomNavbar> {
                     margin: const EdgeInsets.only(left: 10.0),
                     child: Text(
                       item._title,
-                      style: TextStyle(color: item._color, fontSize: 12, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(color: item._color, fontSize: 12, fontWeight: FontWeight.bold),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       softWrap: false,
@@ -60,7 +62,8 @@ class BottomNavbarState extends State<BottomNavbar> {
       width: MediaQuery.of(context).size.width,
       height: 56,
       padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(color: _backgroundColor, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 1)]),
+      decoration: BoxDecoration(
+          color: _backgroundColor, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 1)]),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: _navigationItems.map((item) {
